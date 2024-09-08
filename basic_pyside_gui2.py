@@ -89,7 +89,7 @@ class Window(QDialog):
         self.read_info_from_file(file_output)
         self.set_config()
 
-        print(self.tok.config)
+        print('Current configuration at read time: ', self.tok.config)
 
     def draw_group_box(self, group_name):
         this_group_box = QGroupBox(group_name)
@@ -166,6 +166,7 @@ class Window(QDialog):
         self.set_config()
         with open(file_output, 'w') as f:
             json.dump(self.tok.config, f)
+            print('Current configuration at write time: ', self.tok.config)
         self.close()
 
 
