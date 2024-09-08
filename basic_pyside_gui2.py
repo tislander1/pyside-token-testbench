@@ -6,6 +6,15 @@ import pandas as pd
 
 file_output = 'test.json'
 
+def remove_blank_rows(table):
+    table2 = []
+    num_columns = len(table[0])
+    blank_row = ['' for ix in range(num_columns)]
+    for row in table:
+        if row != blank_row:
+            table2.append(row)
+    return table2
+
 class Tokens():
     def __init__(self):
         self.tokens = {
@@ -15,8 +24,9 @@ class Tokens():
             'tree': {'type': 'combobox', 'label': 'Tree', 'options' : ['Pine', 'Maple', 'Palm'], 'datatype': 'str', 'default': 'Basket weaving', 'group': 'Cool'},
             'sleeping': {'type': 'checkbox', 'label': 'Sleeping', 'datatype': 'bool', 'default': False, 'group': 'Lame'},
             'story': {'type': 'plaintextedit', 'label': 'Story', 'datatype': 'str', 'default': 'It was a dark and stormy night.', 'group':  'Amazing'},
-            'table1': {'type': 'table', 'label': 'Roses', 'datatype': 'tabular', 'data': [['Pink', 20, 'B+'], ['Red', 15, 'A-']], 'columns': ['Color', 'Thorn count', 'Fanciness'], 'optional_row_labels': [], 'row_count': 10, 'group': 'Lame'},
-            'table2': {'type': 'table', 'label': 'AIs', 'datatype': 'tabular', 'data': [['Samsung', 5], ['Apple', 2]], 'columns': ['Maker', 'IQ'], 'optional_row_labels': ['Bixby', 'Siri'], 'row_count': 2, 'group': 'Cool'}
+            'table_of_roses': {'type': 'table', 'label': 'Roses', 'datatype': 'tabular', 'data': [['Pink', 20, 'B+'], ['Red', 15, 'A-']], 'columns': ['Color', 'Thorn count', 'Fanciness'], 'optional_row_labels': [], 'row_count': 10, 'group': 'Lame'},
+            'table_of_AIs': {'type': 'table', 'label': 'AIs', 'datatype': 'tabular', 'data': [['Samsung', 5], ['Apple', 2]], 'columns': ['Maker', 'IQ'], 'optional_row_labels': ['Bixby', 'Siri'], 'row_count': 2, 'group': 'Cool'},
+            'analyze_roses': {'type': 'button', 'label': 'Analysis', 'button_text': 'Get thorniest rose', 'function': 'get_thorniest', 'group': 'Lame'}
 			}
         self.config = {}
 
@@ -116,6 +126,12 @@ class Window(QDialog):
                     setattr(self, key, QTableView())
                     obj = getattr(self, key)
                     obj.setModel(TableModel(data_table = value['data'], row_count = value['row_count'], column_headings = value['columns'], row_headings = value['optional_row_labels']))
+                elif value['type'] == 'button':
+                    setattr(self, key, QPushButton(value['button_text']))
+                    obj = getattr(self, key)
+                    function_name = value['function']
+                    obj.pressed.connect(getattr(self, function_name))
+                    x =2
                               
                 self.formGroupBoxes[group_name][1].addRow(QLabel(value['label']), obj)  #add row to layout
         self.formGroupBoxes[group_name][0].setLayout(self.formGroupBoxes[group_name][1])
@@ -135,9 +151,12 @@ class Window(QDialog):
                 result = getattr(self, key).toPlainText()
             elif val['type'] in ['table']:
                 result = getattr(self, key).model().data_table
+            elif val['type'] in ['button']:
+                pass
             else:
                 result = 'ERROR, UNKNOWN TYPE!!'
-            self.tok.config[key] = result
+            if not val['type'] in ['button']:
+                self.tok.config[key] = result
         x = 2
 
 
@@ -147,19 +166,20 @@ class Window(QDialog):
             with open(filename, 'r') as f:
                 self.config = json.load(f)
             for key, val in self.config.items():
-                gui_component = getattr(self, key)
-                if self.tok.tokens[key]['type'] in ['spinbox']:
-                    gui_component.setValue(int(val))
-                elif self.tok.tokens[key]['type'] in ['combobox']:
-                    gui_component.setCurrentText(val)
-                elif self.tok.tokens[key]['type'] in ['lineedit']:
-                    gui_component.setText(val)
-                elif self.tok.tokens[key]['type'] in ['checkbox']:
-                    gui_component.setChecked(bool(val))
-                elif self.tok.tokens[key]['type'] in ['plaintextedit']:
-                    gui_component.setPlainText(val)
-                elif self.tok.tokens[key]['type'] in ['table']:
-                    gui_component.model().data_table = val
+                if key in self.__dict__:
+                    gui_component = getattr(self, key)
+                    if self.tok.tokens[key]['type'] in ['spinbox']:
+                        gui_component.setValue(int(val))
+                    elif self.tok.tokens[key]['type'] in ['combobox']:
+                        gui_component.setCurrentText(val)
+                    elif self.tok.tokens[key]['type'] in ['lineedit']:
+                        gui_component.setText(val)
+                    elif self.tok.tokens[key]['type'] in ['checkbox']:
+                        gui_component.setChecked(bool(val))
+                    elif self.tok.tokens[key]['type'] in ['plaintextedit']:
+                        gui_component.setPlainText(val)
+                    elif self.tok.tokens[key]['type'] in ['table']:
+                        gui_component.model().data_table = val
 
 	# run writeInfo method when form is accepted
     def write_info_to_file(self):
@@ -168,6 +188,17 @@ class Window(QDialog):
             json.dump(self.tok.config, f)
             print('Current configuration at write time: ', self.tok.config)
         self.close()
+
+    def get_thorniest(self):
+        self.set_config()
+        roses = remove_blank_rows(self.tok.config['table_of_roses'])
+        thorns = -9999
+        thorniest_row = -1
+        for ix in range(len(roses)):
+            if int(roses[ix][1]) > thorns:
+                thorns = int(roses[ix][1])
+                thorniest_row = ix
+        print('The rose with the most thorns is: ' + str(roses[thorniest_row][0]))
 
 
 # main method
