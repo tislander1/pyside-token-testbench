@@ -160,6 +160,27 @@ class Window(QDialog):
         x = 2
 
 
+    def update_field(self, key, new_value):
+	# run writeInfo method when form is accepted
+        val = self.tok.tokens[key]
+        self.tok.config[key] = new_value
+        gui_component = getattr(self, key)
+        if val['type'] in ['lineedit']:
+            gui_component.setText(new_value)
+        elif val['type'] in ['spinbox']:
+            gui_component.setValue(int(new_value))
+        elif val['type'] in ['combobox']:
+            gui_component.setCurrentText(new_value)
+        elif val['type'] in ['checkbox']:
+            gui_component.setChecked(bool(new_value))
+        elif val['type'] in ['plaintextedit']:
+            gui_component.setPlainText(new_value)
+        elif val['type'] in ['table']:
+            gui_component.model().data_table = new_value
+        elif val['type'] in ['button']:
+            pass
+        x = 2
+        
     def read_info_from_file(self, filename):
         file_exists = os.path.exists(filename)
         if file_exists:
@@ -198,7 +219,10 @@ class Window(QDialog):
             if int(roses[ix][1]) > thorns:
                 thorns = int(roses[ix][1])
                 thorniest_row = ix
-        print('The rose with the most thorns is: ' + str(roses[thorniest_row][0]))
+        output_string = 'The rose with the most thorns is: ' + str(roses[thorniest_row][0])
+        print(output_string)
+        new_story_text = self.tok.config['story'] + '\n' + output_string
+        self.update_field('story', new_story_text)
 
 
 # main method
