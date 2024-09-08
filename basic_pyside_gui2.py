@@ -10,7 +10,8 @@ class Tokens():
 			'sports': {'type': 'combobox', 'label': 'Degree', 'options' : ['Volleyball', 'Rock climbing', 'SCUBA'], 'datatype': 'str', 'default': 'Basket weaving', 'group': 'Cool'},
 			'name': {'type': 'lineedit', 'label': 'Name', 'datatype': 'str', 'default': '', 'group': 'Lame'},
             'tree': {'type': 'combobox', 'label': 'Tree', 'options' : ['Pine', 'Maple', 'Palm'], 'datatype': 'str', 'default': 'Basket weaving', 'group': 'Cool'},
-            'sleeping': {'type': 'checkbox', 'label': 'Sleeping', 'datatype': 'bool', 'default': False, 'group': 'Lame'}
+            'sleeping': {'type': 'checkbox', 'label': 'Sleeping', 'datatype': 'bool', 'default': False, 'group': 'Lame'},
+            'story': {'type': 'plaintextedit', 'label': 'Story', 'datatype': 'str', 'default': 'It was a dark and stormy night.', 'group':  'Amazing'},
 			}
         self.config = {}
 
@@ -59,6 +60,9 @@ class Window(QDialog):
                     gui_component.setText(val)
                 elif self.tok.tokens[key]['type'] in ['checkbox']:
                     gui_component.setChecked(bool(val))
+                elif self.tok.tokens[key]['type'] in ['plaintextedit']:
+                    gui_component.setPlainText(val)
+
 		
     def draw_group_box(self, group_name):
         this_group_box = QGroupBox(group_name)
@@ -78,6 +82,9 @@ class Window(QDialog):
                 elif value['type'] == 'checkbox':
                     setattr(self, key, QCheckBox())
                     obj = getattr(self, key)
+                elif value['type'] == 'plaintextedit':
+                    setattr(self, key, QPlainTextEdit())
+                    obj = getattr(self, key)                   
                 self.formGroupBoxes[group_name][1].addRow(QLabel(value['label']), obj)  #add row to layout
         self.formGroupBoxes[group_name][0].setLayout(self.formGroupBoxes[group_name][1])
 
@@ -93,6 +100,8 @@ class Window(QDialog):
                 result = getattr(self, key).currentText()
             elif val['type'] in ['checkbox']:
                 result = getattr(self, key).isChecked()
+            elif val['type'] in ['plaintextedit']:
+                result = getattr(self, key).toPlainText()
             else:
                 result = 'ERROR, UNKNOWN TYPE!!'
             print(val['label'] +': ' + str(result))
