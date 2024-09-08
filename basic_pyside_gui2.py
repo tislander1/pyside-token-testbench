@@ -87,30 +87,10 @@ class Window(QDialog):
         self.setLayout(mainLayout)
 
         self.read_info_from_file(file_output)
+        self.set_config()
 
-        x = 2
+        print(self.tok.config)
 
-    def read_info_from_file(self, filename):
-        file_exists = os.path.exists(filename)
-        if file_exists:
-            with open(filename, 'r') as f:
-                self.config = json.load(f)
-            for key, val in self.config.items():
-                gui_component = getattr(self, key)
-                if self.tok.tokens[key]['type'] in ['spinbox']:
-                    gui_component.setValue(int(val))
-                elif self.tok.tokens[key]['type'] in ['combobox']:
-                    gui_component.setCurrentText(val)
-                elif self.tok.tokens[key]['type'] in ['lineedit']:
-                    gui_component.setText(val)
-                elif self.tok.tokens[key]['type'] in ['checkbox']:
-                    gui_component.setChecked(bool(val))
-                elif self.tok.tokens[key]['type'] in ['plaintextedit']:
-                    gui_component.setPlainText(val)
-                elif self.tok.tokens[key]['type'] in ['table']:
-                    gui_component.model().data_table = val
-
-		
     def draw_group_box(self, group_name):
         this_group_box = QGroupBox(group_name)
         self.formGroupBoxes[group_name] = [this_group_box,  QFormLayout()]
@@ -140,9 +120,8 @@ class Window(QDialog):
                 self.formGroupBoxes[group_name][1].addRow(QLabel(value['label']), obj)  #add row to layout
         self.formGroupBoxes[group_name][0].setLayout(self.formGroupBoxes[group_name][1])
 
+    def set_config(self):
 	# run writeInfo method when form is accepted
-    def write_info_to_file(self):
-        data_dict = {}
         for key, val in self.tok.tokens.items():
             if val['type'] in ['lineedit']:
                 result = getattr(self, key).text()
@@ -158,10 +137,35 @@ class Window(QDialog):
                 result = getattr(self, key).model().data_table
             else:
                 result = 'ERROR, UNKNOWN TYPE!!'
-            print(val['label'] +': ' + str(result))
-            data_dict[key] = result
+            self.tok.config[key] = result
+        x = 2
+
+
+    def read_info_from_file(self, filename):
+        file_exists = os.path.exists(filename)
+        if file_exists:
+            with open(filename, 'r') as f:
+                self.config = json.load(f)
+            for key, val in self.config.items():
+                gui_component = getattr(self, key)
+                if self.tok.tokens[key]['type'] in ['spinbox']:
+                    gui_component.setValue(int(val))
+                elif self.tok.tokens[key]['type'] in ['combobox']:
+                    gui_component.setCurrentText(val)
+                elif self.tok.tokens[key]['type'] in ['lineedit']:
+                    gui_component.setText(val)
+                elif self.tok.tokens[key]['type'] in ['checkbox']:
+                    gui_component.setChecked(bool(val))
+                elif self.tok.tokens[key]['type'] in ['plaintextedit']:
+                    gui_component.setPlainText(val)
+                elif self.tok.tokens[key]['type'] in ['table']:
+                    gui_component.model().data_table = val
+
+	# run writeInfo method when form is accepted
+    def write_info_to_file(self):
+        self.set_config()
         with open(file_output, 'w') as f:
-            json.dump(data_dict, f)
+            json.dump(self.tok.config, f)
         self.close()
 
 
