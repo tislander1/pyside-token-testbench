@@ -4,4 +4,5 @@ Testing the use of tokens with pyside
 - The goal is to control the entire GUI functionality with a single dictionary called "tokens"
 - Allow saving and loading from JSON
   
-![image](https://github.com/user-attachments/assets/c409ef2f-7156-475a-9c2c-7162522991a8)
+![image](https://github.com/user-attachments/assets/7047e579-1a3a-4d1b-9235-9cdb3d802a8f)
+
